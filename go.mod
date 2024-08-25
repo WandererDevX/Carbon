@@ -1,4 +1,4 @@
-module BlogSite
+module Carbon
 
 go 1.22
 
