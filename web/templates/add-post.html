@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlogSite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/templates/style.css">
+</head>
+
+<body>
+
+<header class="header__layout">
+    <div class="header-font">
+        <a href="/">
+            <img src="/templates/Carbon-fill.png" alt="Logo" class="header-logo">
+            <h1>Carbon</h1>
+        </a>
+    </div>
+    <button class="redirect-button" onclick="redirectToAddPostPage()">Add post</button>
+</header>
+
+
+<div class="content">
+    <form id="addPost" action="/addPost" method="POST">
+        <div class="input-container">
+            <input type="text" id="title" name="postTitle" placeholder="Title" required>
+            <img id="imagePreview" class="post-image" alt="Image preview" style="display: none;">
+            <textarea name="postDescription" placeholder="Some text"  required></textarea>
+        </div>
+        <div class="button-container">
+            <button id="uploadButton" class="upload-button" type="button" onclick="handleImageUpload()">
+                Upload Photo
+            </button>
+            <button class="redirect-button" type="submit">Send</button>
+        </div>
+        <input type="file" id="fileInput" class="hidden-input" accept="image/*" onchange="previewImage(event)">
+    </form>
+
+</div>
+
+<script src="/templates/addPostHandler.js"></script>
+</body>
+</html>
