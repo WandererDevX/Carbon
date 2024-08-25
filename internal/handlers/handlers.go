@@ -1,17 +1,22 @@
 package handlers
 
 import (
-	"BlogSite/internal/storage/database"
-	"BlogSite/internal/utils"
+	"Carbon/internal/storage/database"
+	"Carbon/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"log/slog"
 	"net/http"
 	"path/filepath"
 	"strconv"
 )
 
 func HomeHandler(c *gin.Context) {
-	allPosts := database.AllPosts()
+	allPosts, err := database.AllPosts()
+	if err != nil {
+		slog.Error("Failed to retrieve posts:", "error", err)
+		return
+	}
 	c.HTML(http.StatusOK, "home.html", allPosts)
 
 }
@@ -28,7 +33,10 @@ func AddPostHandler(c *gin.Context) {
 		imagePath := uploadPath + imageName
 		err = c.SaveUploadedFile(postImage, imagePath)
 	}
-	database.AddPost(postTitle, postDescription, imageName)
+	err = database.AddPost(postTitle, postDescription, imageName)
+	if err != nil {
+		slog.Error("Failed to add a post:", "error", err)
+	}
 }
 
 func AddPostPageHandler(c *gin.Context) {
@@ -37,16 +45,24 @@ func AddPostPageHandler(c *gin.Context) {
 
 func PostHandler(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	selectedPost := database.PostByID(id)
-
-	selectedPost.Description = utils.ConvertMarkdownToHTML(selectedPost.Description)
+	selectedPost, err := database.PostByID(id)
+	if err != nil {
+		slog.Error("Failed to get post with id:", id, "error:", err)
+	}
+	selectedPost.Description, err = utils.ConvertMarkdownToHTML(selectedPost.Description)
+	if err != nil {
+		slog.Error("Failed to convert markdown to HTML:", err)
+	}
 
 	c.HTML(http.StatusOK, "post-page.html", selectedPost)
 }
 
 func DeletePostHandler(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	database.DeletePost(id)
+	err := database.DeletePost(id)
+	if err != nil {
+		slog.Error("Failed to delete post with id:", id, "error:", err)
+	}
 }
 
 func UpdatePostHandler(c *gin.Context) {
@@ -62,5 +78,8 @@ func UpdatePostHandler(c *gin.Context) {
 		imagePath := uploadPath + imageName
 		err = c.SaveUploadedFile(postImage, imagePath)
 	}
-	database.UpdatePost(id, postTitle, postDescription, imageName)
+	err = database.UpdatePost(id, postTitle, postDescription, imageName)
+	if err != nil {
+		slog.Error("Failed to update post with id:", id, "error:", err)
+	}
 }

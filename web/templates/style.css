@@ -48,16 +48,19 @@ body {
     width: 600px;
     background-color: #ffffff;
     padding: 20px;
-    margin: 12px auto;
+    margin: 12px 0;
     border-radius: 8px;
     overflow-wrap: anywhere;
+    position: relative;
 }
 
 .blog-post h2 {
     color: #141414;
     margin: 0;
 }
-
+.blog-post p{
+    margin-bottom: 0;
+}
 .blog-post.short-heading h2 {
     color: #141414;
     margin: 0;
@@ -272,15 +275,6 @@ form {
     max-width: 1000px;
 }
 
-.blog-post {
-    width: 600px;
-    background-color: #ffffff;
-    padding: 20px;
-    margin: 12px auto;
-    border-radius: 8px;
-    overflow-wrap: anywhere;
-    position: relative;
-}
 
 .menu {
     position: absolute;

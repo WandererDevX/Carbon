@@ -1,7 +1,7 @@
 package database
 
 import (
-	"BlogSite/internal/models"
+	"Carbon/internal/models"
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 	"log/slog"
@@ -32,41 +32,38 @@ func GetDB() *sql.DB {
 	return db
 }
 
-func AllPosts() []models.Post {
+func AllPosts() ([]models.Post, error) {
 	db := GetDB()
 	query := "SELECT * FROM posts"
 	rows, err := db.Query(query)
 	if err != nil {
-		slog.Error("Failed to querying all posts", "Error", err)
-		return nil
+		return nil, err
 	}
 	defer rows.Close()
 
 	var allPosts []models.Post
 	for rows.Next() {
 		post := models.Post{}
-		if err := rows.Scan(&post.ID, &post.Title, &post.Description, &post.Image); err != nil {
-			slog.Error("Failed to scanning row", "Error", err)
-			return nil
+		if err = rows.Scan(&post.ID, &post.Title, &post.Description, &post.Image); err != nil {
+			return nil, err
 		}
 		allPosts = append(allPosts, post)
 	}
-	return allPosts
+	return allPosts, nil
 }
 
-func PostByID(id int) models.Post {
+func PostByID(id int) (models.Post, error) {
 	db := GetDB()
 	var post models.Post
 	query := `SELECT * FROM posts WHERE id = $1`
 	err := db.QueryRow(query, id).Scan(&post.ID, &post.Title, &post.Description, &post.Image)
 	if err != nil {
-		slog.Error("Failed to querying post by id", "Error", err)
-		return post
+		return post, err
 	}
-	return post
+	return post, nil
 }
 
-func AddPost(title string, description string, imageName string) {
+func AddPost(title string, description string, imageName string) error {
 	db := GetDB()
 
 	relativeImagePath := ""
@@ -77,24 +74,27 @@ func AddPost(title string, description string, imageName string) {
 	query := `INSERT INTO posts (title, description, image) VALUES ($1, $2, $3)`
 	_, err := db.Exec(query, title, description, relativeImagePath)
 	if err != nil {
-		slog.Error("Failed to inserting post into database", "Error", err)
+		return err
 	}
+	return nil
 }
 
-func DeletePost(id int) {
+func DeletePost(id int) error {
 	db := GetDB()
 	query := `DELETE FROM posts WHERE id = $1`
 	_, err := db.Exec(query, id)
 	if err != nil {
-		slog.Error("Failed to deleting post", "Error", err)
+		return err
 	}
+	return nil
 }
 
-func UpdatePost(id int, newTitle string, newDescription string, newImage string) {
+func UpdatePost(id int, newTitle string, newDescription string, newImage string) error {
 	db := GetDB()
 	query := `UPDATE posts SET (title, description, image) = ($1, $2, $3) WHERE id = $4`
 	_, err := db.Exec(query, newTitle, newDescription, newImage, id)
 	if err != nil {
-		slog.Error("Failed to update post", "Error", err)
+		return err
 	}
+	return nil
 }

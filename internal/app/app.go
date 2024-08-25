@@ -1,8 +1,9 @@
 package server
 
 import (
-	"BlogSite/internal/handlers"
-	"BlogSite/internal/storage/database"
+	"Carbon/internal/handlers"
+	"Carbon/internal/storage/database"
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"html/template"
 	"log"
@@ -16,13 +17,13 @@ func NewApp() *App {
 	app := &App{
 		Router: gin.Default(),
 	}
-	app.setupRouter()
-	app.setupDatabase()
+	db := app.setupDatabase()
+	app.setupRouter(db)
 
 	return app
 }
 
-func (app *App) setupRouter() {
+func (app *App) setupRouter(db *sql.DB) {
 	app.Router.SetFuncMap(template.FuncMap{
 		"safeHTML": func(s string) template.HTML { return template.HTML(s) },
 	})
@@ -42,13 +43,15 @@ func (app *App) setupRouter() {
 	app.Router.Static("/templates", "./web/templates")
 }
 
-func (app *App) setupDatabase() {
+func (app *App) setupDatabase() *sql.DB {
 	db := database.GetDB()
 	database.CreateTable(db)
+	return db
 
 }
 
-func (app *App) Run(addr string) {
+func (app *App) Run() {
+	addr := ":8080"
 	if err := app.Router.Run(addr); err != nil {
 		log.Fatal(err)
 	}

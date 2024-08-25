@@ -1,3 +1,3 @@
 .idea/
-internal/assets/
+internal/assets/*
 internal/storage/database/posts.db
