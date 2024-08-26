@@ -1,4 +1,5 @@
 .idea/
+web/
 internal/assets/*
 !internal/assets/.gitkeep
 internal/storage/database/posts.db

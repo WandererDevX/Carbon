@@ -3,6 +3,7 @@ package handlers
 import (
 	"Carbon/internal/storage/database"
 	"Carbon/internal/utils"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"log/slog"
@@ -22,16 +23,17 @@ func HomeHandler(c *gin.Context) {
 }
 
 func AddPostHandler(c *gin.Context) {
-	uploadPath := "internal/assets/"
-	imageName := ""
-
 	postTitle := c.PostForm("postTitle")
 	postDescription := c.PostForm("postDescription")
 	postImage, err := c.FormFile("postImage")
-	if err == nil {
-		imageName = uuid.New().String() + filepath.Ext(postImage.Filename)
-		imagePath := uploadPath + imageName
-		err = c.SaveUploadedFile(postImage, imagePath)
+
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		slog.Error("Failed to retrieve post image:", "error", err)
+	}
+	imageName, err := utils.SaveImage(c, postImage)
+	if err != nil {
+		slog.Error("Failed to save image:", "error", err)
+		return
 	}
 	err = database.AddPost(postTitle, postDescription, imageName)
 	if err != nil {
