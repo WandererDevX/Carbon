@@ -3,57 +3,47 @@ package server
 import (
 	"Carbon/internal/handlers"
 	"Carbon/internal/storage/database"
-	"database/sql"
 	"github.com/gin-gonic/gin"
 	"html/template"
-	"log"
 )
 
-type App struct {
-	Router *gin.Engine
+var router *gin.Engine
+
+func NewApp() *gin.Engine {
+	router = gin.Default()
+	setupDatabase()
+	setupRouter()
+
+	return router
 }
 
-func NewApp() *App {
-	app := &App{
-		Router: gin.Default(),
-	}
-	db := app.setupDatabase()
-	app.setupRouter(db)
-
-	return app
-}
-
-func (app *App) setupRouter(db *sql.DB) {
-	app.Router.SetFuncMap(template.FuncMap{
+func setupRouter() {
+	router.SetFuncMap(template.FuncMap{
 		"safeHTML": func(s string) template.HTML { return template.HTML(s) },
 	})
-	app.Router.LoadHTMLGlob("web/templates/*")
+	router.LoadHTMLGlob("web/templates/*")
 
-	app.Router.GET("/", handlers.HomeHandler)
-	app.Router.GET("/add", handlers.AddPostPageHandler)
-	app.Router.GET("/posts/:id", handlers.PostHandler)
+	router.GET("/", handlers.HomeHandler)
+	router.GET("/add", handlers.AddPostPageHandler)
+	router.GET("/posts/:id", handlers.PostHandler)
 
-	app.Router.POST("/addPost", handlers.AddPostHandler)
+	router.POST("/addPost", handlers.AddPostHandler)
 
-	app.Router.PUT("/posts/:id", handlers.UpdatePostHandler)
+	router.PUT("/posts/:id", handlers.UpdatePostHandler)
 
-	app.Router.DELETE("/posts/:id", handlers.DeletePostHandler)
+	router.DELETE("/posts/:id", handlers.DeletePostHandler)
 
-	app.Router.Static("/assets", "./internal/assets")
-	app.Router.Static("/templates", "./web/templates")
+	router.Static("/assets", "./internal/assets")
+	router.Static("/templates", "./web/templates")
 }
 
-func (app *App) setupDatabase() *sql.DB {
-	db := database.GetDB()
-	database.CreateTable(db)
-	return db
-
+func setupDatabase() {
+	database.CreateTable()
 }
 
-func (app *App) Run() {
-	addr := ":8080"
-	if err := app.Router.Run(addr); err != nil {
-		log.Fatal(err)
+func Run() error {
+	if err := router.Run(); err != nil {
+		return err
 	}
-
+	return nil
 }

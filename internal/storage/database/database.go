@@ -7,7 +7,22 @@ import (
 	"log/slog"
 )
 
-func CreateTable(db *sql.DB) {
+var db *sql.DB
+
+func init() {
+	var err error
+	db, err = sql.Open("sqlite3", "internal/storage/database/posts.db")
+	if err != nil {
+		slog.Error("error opening database: ", err)
+	}
+
+	if err = db.Ping(); err != nil {
+		slog.Error("error pinging database: ", err)
+	}
+	slog.Info("database connected")
+}
+
+func CreateTable() {
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS posts (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,17 +38,7 @@ func CreateTable(db *sql.DB) {
 	}
 }
 
-func GetDB() *sql.DB {
-	db, err := sql.Open("sqlite3", "internal/storage/database/posts.db")
-	if err != nil {
-		slog.Error("Failed to open database", "Error", err)
-		return nil
-	}
-	return db
-}
-
 func AllPosts() ([]models.Post, error) {
-	db := GetDB()
 	query := "SELECT * FROM posts"
 	rows, err := db.Query(query)
 	if err != nil {
@@ -53,7 +58,6 @@ func AllPosts() ([]models.Post, error) {
 }
 
 func PostByID(id int) (models.Post, error) {
-	db := GetDB()
 	var post models.Post
 	query := `SELECT * FROM posts WHERE id = $1`
 	err := db.QueryRow(query, id).Scan(&post.ID, &post.Title, &post.Description, &post.Image)
@@ -64,8 +68,6 @@ func PostByID(id int) (models.Post, error) {
 }
 
 func AddPost(title string, description string, imageName string) error {
-	db := GetDB()
-
 	relativeImagePath := ""
 	if imageName != "" {
 		relativeImagePath = "/assets/" + imageName
@@ -80,7 +82,6 @@ func AddPost(title string, description string, imageName string) error {
 }
 
 func DeletePost(id int) error {
-	db := GetDB()
 	query := `DELETE FROM posts WHERE id = $1`
 	_, err := db.Exec(query, id)
 	if err != nil {
@@ -90,7 +91,6 @@ func DeletePost(id int) error {
 }
 
 func UpdatePost(id int, newTitle string, newDescription string, newImage string) error {
-	db := GetDB()
 	query := `UPDATE posts SET (title, description, image) = ($1, $2, $3) WHERE id = $4`
 	_, err := db.Exec(query, newTitle, newDescription, newImage, id)
 	if err != nil {
